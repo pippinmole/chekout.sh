@@ -1,0 +1,17 @@
+# Copy this file to .github/workflows/chekout.yml in your repo.
+# That's it — no other configuration needed.
+
+name: chekout.sh
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: chekout-sh/chekout.sh@main

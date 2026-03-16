@@ -1,0 +1,55 @@
+name: chekout.sh
+description: Post a one-click deep link on every PR so teammates can open it locally in their IDE with no manual checkout.
+author: chekout-sh
+
+branding:
+  icon: link
+  color: blue
+
+inputs:
+  github-token:
+    description: GitHub token with pull-requests:write permission
+    required: false
+    default: ${{ github.token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Post chekout.sh comment
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const branch = context.payload.pull_request.head.ref;
+          const repo   = context.payload.repository.full_name;
+          const url    = `https://chekout.sh/open?repo=${repo}&branch=${encodeURIComponent(branch)}`;
+
+          const FINGERPRINT = '<!-- chekout-bot -->';
+          const body = `${FINGERPRINT}
+          **Open this PR locally** — [chekout.sh](${url})
+
+          > Install the [chekout.sh desktop app](https://chekout.sh) if you haven't already.`;
+
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo:  context.repo.repo,
+            issue_number: context.payload.pull_request.number,
+          });
+
+          const existing = comments.find(c => c.body.includes(FINGERPRINT));
+
+          if (existing) {
+            await github.rest.issues.updateComment({
+              owner:      context.repo.owner,
+              repo:       context.repo.repo,
+              comment_id: existing.id,
+              body,
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner:        context.repo.owner,
+              repo:         context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body,
+            });
+          }

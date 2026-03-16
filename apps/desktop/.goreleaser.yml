@@ -1,0 +1,122 @@
+version: 2
+
+project_name: chekout
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  # macOS arm64 (Apple Silicon) — CGO required for Apple Events
+  - id: darwin-arm64
+    main: .
+    binary: chekout
+    goos: [darwin]
+    goarch: [arm64]
+    env:
+      - CGO_ENABLED=1
+      - CC=clang
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+
+  # macOS amd64 (Intel) — CGO required for Apple Events
+  - id: darwin-amd64
+    main: .
+    binary: chekout
+    goos: [darwin]
+    goarch: [amd64]
+    env:
+      - CGO_ENABLED=1
+      - CC=clang
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+
+  # Windows amd64 — no CGO needed
+  - id: windows-amd64
+    main: .
+    binary: chekout
+    goos: [windows]
+    goarch: [amd64]
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -H windowsgui
+
+  # Linux amd64 — no CGO needed
+  - id: linux-amd64
+    main: .
+    binary: chekout
+    goos: [linux]
+    goarch: [amd64]
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+
+archives:
+  - id: default
+    builds:
+      - darwin-arm64
+      - darwin-amd64
+      - windows-amd64
+      - linux-amd64
+    name_template: "chekout_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+      - README.md
+
+# macOS universal binary (fat binary combining amd64 + arm64)
+universal_binaries:
+  - ids:
+      - darwin-arm64
+      - darwin-amd64
+    name_template: chekout
+    replace: true
+
+# macOS .app bundle
+# goreleaser does not natively build .app bundles, so we use a post-build hook.
+# The bundle is assembled by the release workflow using the Info.plist in this dir.
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+brews:
+  - name: chekout
+    repository:
+      owner: chekout-sh
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    homepage: "https://chekout.sh"
+    description: "Open GitHub PRs in your local IDE with one click"
+    license: "MIT"
+    install: |
+      bin.install "chekout"
+    test: |
+      system "#{bin}/chekout", "--version"
+
+release:
+  github:
+    owner: chekout-sh
+    name: chekout
+  draft: false
+  prerelease: auto
+  name_template: "v{{.Version}}"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - Merge pull request
+      - Merge branch

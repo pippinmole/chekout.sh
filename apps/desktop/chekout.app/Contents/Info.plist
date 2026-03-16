@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+    "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>chekout</string>
+
+    <key>CFBundleDisplayName</key>
+    <string>chekout</string>
+
+    <key>CFBundleIdentifier</key>
+    <string>sh.chekout.app</string>
+
+    <key>CFBundleVersion</key>
+    <string>1.0.0</string>
+
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+
+    <key>CFBundleSignature</key>
+    <string>????</string>
+
+    <key>CFBundleExecutable</key>
+    <string>chekout</string>
+
+    <!-- Register the chekout:// URL scheme -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>sh.chekout.url</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>chekout</string>
+            </array>
+        </dict>
+    </array>
+
+    <!-- Menu-bar-only app: no Dock icon, no application menu -->
+    <key>LSUIElement</key>
+    <true/>
+
+    <!-- Minimum macOS version: 12.0 Monterey -->
+    <key>LSMinimumSystemVersion</key>
+    <string>12.0</string>
+
+    <!-- Allow the app to be opened by URL events -->
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+
+    <key>NSHighResolutionCapable</key>
+    <true/>
+</dict>
+</plist>

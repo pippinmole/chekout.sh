@@ -1,6 +1,6 @@
 # Part 2 — Desktop App (Go)
 
-Located in `app/`. Compiles to a single binary. Registers `chekout://` with the OS, intercepts links, and opens the correct IDE.
+Located in `apps/desktop/`. Compiles to a single binary. Registers `chekout://` with the OS, intercepts links, and opens the correct IDE.
 
 ## URL scheme registration
 
@@ -80,7 +80,7 @@ github.com/gen2brain/beeep      # OS notifications
 
 ## Distribution
 
-- `goreleaser` config at `app/.goreleaser.yml`
+- `goreleaser` config at `apps/desktop/.goreleaser.yml`
 - Builds: `darwin/amd64`, `darwin/arm64`, `windows/amd64`, `linux/amd64`
 - Homebrew tap: `brew install chekout-sh/tap/chekout`
-- Winget manifest in `app/winget/`
+- Winget manifest in `apps/desktop/winget/`

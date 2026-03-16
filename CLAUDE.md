@@ -28,9 +28,11 @@ Which the desktop app intercepts, looks up the local clone, checks out the branc
 
 ```
 /
-├── action/        # GitHub Action (YAML + JS)
-├── app/           # Go desktop application
-└── web/           # Next.js website
+├── action/           # GitHub Action (YAML + JS)
+├── apps/
+│   ├── desktop/      # Go desktop application
+│   └── web/          # Next.js website
+└── packages/
 ```
 
 ## Key decisions

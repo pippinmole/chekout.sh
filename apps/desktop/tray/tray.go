@@ -1,6 +1,7 @@
 package tray
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
@@ -19,7 +20,9 @@ func Run(cfg *config.Config) {
 
 func onReady(cfg *config.Config) {
 	systray.SetIcon(iconData())
+	fmt.Println("tray icon set")
 	systray.SetTooltip("chekout")
+	fmt.Println("tray ready")
 
 	// Recent opens section (up to 5, greyed-out display items).
 	addRecentOpens(cfg)

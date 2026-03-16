@@ -33,6 +33,7 @@ func Send(rawURL string) error {
 	}
 	defer conn.Close()
 
+	fmt.Printf("ipc: relaying URL to running instance: %s\n", rawURL)
 	_, err = fmt.Fprintln(conn, rawURL)
 	return err
 }
@@ -62,12 +63,15 @@ func Serve(ch chan<- string) {
 	}
 	defer ln.Close()
 
+	fmt.Printf("ipc: listening on %s\n", sockPath)
+
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
 			// Listener closed — shut down gracefully.
 			return
 		}
+		fmt.Println("ipc: connection received")
 		go handleConn(conn, ch)
 	}
 }
@@ -78,6 +82,7 @@ func handleConn(conn net.Conn, ch chan<- string) {
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line != "" {
+			fmt.Printf("ipc: received URL: %s\n", line)
 			ch <- line
 		}
 	}

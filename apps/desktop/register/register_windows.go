@@ -16,8 +16,8 @@ func Register() error {
 		return fmt.Errorf("could not determine executable path: %w", err)
 	}
 
-	// HKEY_CLASSES_ROOT\chekout
-	key, _, err := registry.CreateKey(registry.CLASSES_ROOT, `chekout`, registry.ALL_ACCESS)
+	// HKEY_CURRENT_USER\Software\Classes\chekout (no admin required)
+	key, _, err := registry.CreateKey(registry.CURRENT_USER, `Software\Classes\chekout`, registry.ALL_ACCESS)
 	if err != nil {
 		return fmt.Errorf("creating registry key: %w", err)
 	}
@@ -30,8 +30,8 @@ func Register() error {
 		return err
 	}
 
-	// HKEY_CLASSES_ROOT\chekout\shell\open\command
-	cmdKey, _, err := registry.CreateKey(registry.CLASSES_ROOT, `chekout\shell\open\command`, registry.ALL_ACCESS)
+	// HKEY_CURRENT_USER\Software\Classes\chekout\shell\open\command
+	cmdKey, _, err := registry.CreateKey(registry.CURRENT_USER, `Software\Classes\chekout\shell\open\command`, registry.ALL_ACCESS)
 	if err != nil {
 		return fmt.Errorf("creating command key: %w", err)
 	}

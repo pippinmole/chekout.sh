@@ -2,6 +2,7 @@ package discover
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -31,6 +32,8 @@ func Repos() map[string]config.RepoEntry {
 			continue
 		}
 
+		fmt.Printf("discover: scanning %s\n", root)
+
 		// Walk up to 3 levels deep — repos are rarely nested deeper.
 		_ = walkDepth(root, 3, func(path string, d os.DirEntry) error {
 			if d.Name() == ".git" && d.IsDir() {
@@ -39,6 +42,7 @@ func Repos() map[string]config.RepoEntry {
 				if err != nil || key == "" {
 					return nil
 				}
+				fmt.Printf("discover: found %s at %s\n", key, repoDir)
 				result[key] = config.RepoEntry{Path: repoDir}
 				// Don't descend into .git subdirectories.
 				return filepath.SkipDir

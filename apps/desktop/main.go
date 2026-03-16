@@ -39,20 +39,26 @@ func main() {
 		fmt.Fprintf(os.Stderr, "failed to load config: %v\n", err)
 		os.Exit(1)
 	}
+	fmt.Printf("config loaded (%s)\n", config.Path())
 
 	// Register URL scheme on first run.
 	if !cfg.Registered {
 		if err := register.Register(); err != nil {
 			fmt.Fprintf(os.Stderr, "warning: failed to register URL scheme: %v\n", err)
 		} else {
+			fmt.Println("registered chekout:// URL scheme")
 			cfg.Registered = true
 			_ = config.Save(cfg)
 		}
+	} else {
+		fmt.Println("chekout:// URL scheme already registered")
 	}
 
 	// Auto-discover repos on first run.
 	if len(cfg.Repos) == 0 {
+		fmt.Println("no repos in config — running auto-discovery")
 		discovered := discover.Repos()
+		fmt.Printf("auto-discovery complete: found %d repo(s)\n", len(discovered))
 		if len(discovered) > 0 {
 			if cfg.Repos == nil {
 				cfg.Repos = make(map[string]config.RepoEntry)
@@ -62,6 +68,8 @@ func main() {
 			}
 			_ = config.Save(cfg)
 		}
+	} else {
+		fmt.Printf("config has %d known repo(s)\n", len(cfg.Repos))
 	}
 
 	// Channel for incoming chekout:// URLs (from IPC or Apple Events).
@@ -76,6 +84,7 @@ func main() {
 	// Handle incoming URLs in the background.
 	go func() {
 		for url := range urlCh {
+			fmt.Printf("incoming URL: %s\n", url)
 			go handler.ProcessURL(url, cfg)
 		}
 	}()

@@ -23,8 +23,11 @@ type chekoutJSON struct {
 
 // ProcessURL parses a chekout:// URL and performs the full checkout + IDE open flow.
 func ProcessURL(rawURL string, cfg *config.Config) {
+	fmt.Printf("handler: processing %s\n", rawURL)
+
 	u, err := url.Parse(rawURL)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "handler: invalid URL: %v\n", err)
 		notify(false, "chekout", fmt.Sprintf("Invalid URL: %v", err))
 		return
 	}
@@ -32,6 +35,7 @@ func ProcessURL(rawURL string, cfg *config.Config) {
 	if u.Host != "open" && u.Path != "/open" {
 		// Accept both chekout://open?... and chekout:///open?...
 		if !(u.Host == "open" || strings.TrimPrefix(u.Path, "/") == "open") {
+			fmt.Fprintf(os.Stderr, "handler: unknown URL format: %s\n", rawURL)
 			notify(false, "chekout", "Unknown URL format: "+rawURL)
 			return
 		}
@@ -42,9 +46,12 @@ func ProcessURL(rawURL string, cfg *config.Config) {
 	branch := q.Get("branch")
 
 	if repo == "" || branch == "" {
+		fmt.Fprintf(os.Stderr, "handler: missing repo or branch in URL\n")
 		notify(false, "chekout", "Missing repo or branch in URL")
 		return
 	}
+
+	fmt.Printf("handler: repo=%s branch=%s\n", repo, branch)
 
 	// Normalise repo key: strip leading "github.com/" if accidentally doubled,
 	// but keep the full "github.com/org/repo" form.
@@ -53,21 +60,26 @@ func ProcessURL(rawURL string, cfg *config.Config) {
 	// Look up local path.
 	entry, ok := cfg.GetRepo(repoKey)
 	if !ok {
-		// Ask the user to locate the repo.
+		fmt.Printf("handler: repo %s not in config — prompting user to locate\n", repoKey)
 		localPath, err := pickDirectory(fmt.Sprintf("Locate local clone of %s", repoKey))
 		if err != nil {
+			fmt.Fprintf(os.Stderr, "handler: user did not pick a directory: %v\n", err)
 			notify(false, "chekout", fmt.Sprintf("Could not find repo %s: %v", repoKey, err))
 			return
 		}
+		fmt.Printf("handler: user selected path %s — saved to config\n", localPath)
 		entry = config.RepoEntry{Path: localPath}
 		cfg.SetRepo(repoKey, entry)
 		_ = config.Save(cfg)
+	} else {
+		fmt.Printf("handler: found repo at %s\n", entry.Path)
 	}
 
 	localPath := entry.Path
 
 	// Verify the path exists.
 	if _, err := os.Stat(localPath); err != nil {
+		fmt.Fprintf(os.Stderr, "handler: repo path not found: %s\n", localPath)
 		notify(false, "chekout", fmt.Sprintf("Repo path not found: %s", localPath))
 		return
 	}
@@ -78,17 +90,25 @@ func ProcessURL(rawURL string, cfg *config.Config) {
 		selectedIDE = cfg.DefaultIDE
 	}
 	if override, err := readChekoutJSON(localPath); err == nil && override != "" {
+		fmt.Printf("handler: .chekout.json overrides IDE to %s\n", override)
 		selectedIDE = override
 	}
 
+	fmt.Printf("handler: using IDE %q\n", selectedIDE)
+
 	// git fetch + checkout.
+	fmt.Printf("handler: running git fetch + checkout for branch %s\n", branch)
 	if err := gitCheckout(localPath, branch); err != nil {
+		fmt.Fprintf(os.Stderr, "handler: git checkout failed: %v\n", err)
 		notify(false, "chekout: checkout failed", err.Error())
 		return
 	}
+	fmt.Printf("handler: checked out branch %s\n", branch)
 
 	// Open in IDE.
+	fmt.Printf("handler: opening %s in %s\n", localPath, selectedIDE)
 	if err := ide.Open(selectedIDE, localPath); err != nil {
+		fmt.Fprintf(os.Stderr, "handler: IDE open failed: %v\n", err)
 		notify(false, "chekout: IDE open failed", err.Error())
 		return
 	}
@@ -97,6 +117,7 @@ func ProcessURL(rawURL string, cfg *config.Config) {
 	cfg.AddRecentOpen(repoKey)
 	_ = config.Save(cfg)
 
+	fmt.Printf("handler: success — opened %s (%s)\n", repoKey, branch)
 	notify(true, "chekout", fmt.Sprintf("Opened %s (%s)", repoKey, branch))
 }
 

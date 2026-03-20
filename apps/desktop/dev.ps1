@@ -13,6 +13,6 @@ go build -o chekout.exe .
 
 Write-Host "→ Launching..."
 Start-Process -FilePath ".\chekout.exe"
-Write-Host "✓ Done"
+Write-Host "Done"
 
 Pop-Location

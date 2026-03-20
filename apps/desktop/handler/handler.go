@@ -53,9 +53,13 @@ func ProcessURL(rawURL string, cfg *config.Config) {
 
 	fmt.Printf("handler: repo=%s branch=%s\n", repo, branch)
 
-	// Normalise repo key: strip leading "github.com/" if accidentally doubled,
-	// but keep the full "github.com/org/repo" form.
+	// Normalise repo key: strip scheme so that "https://github.com/org/repo"
+	// and "github.com/org/repo" both resolve to the same config key.
+	// The host is preserved so github.com and gitlab.com repos stay distinct.
 	repoKey := repo
+	if parsed, err := url.Parse(repo); err == nil && parsed.Host != "" {
+		repoKey = parsed.Host + parsed.Path
+	}
 
 	// Look up local path.
 	entry, ok := cfg.GetRepo(repoKey)
